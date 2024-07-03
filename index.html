@@ -1,82 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Calendar with Events</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    margin: 20px;
-  }
-  .calendar {
-    display: grid;
-    grid-template-columns: repeat(7, calc(14.28% - 5px));
-    gap: 5px;
-  }
-  .day {
-    position: relative;
-    padding: 15px;
-    border: 1px solid #ccc;
-    text-align: center;
-    overflow: hidden;
-    cursor: pointer; /* Add cursor pointer for better UX */
-    transition: all 0.3s ease;
-  }
-  .header {
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 10px;
-  }
-  .controls {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .special-day {
-    background-color: yellow;
-  }
-  .label {
-    margin-top: 5px;
-    font-size: 0.8em;
-    color: red;
-    white-space: normal; /* Allow text to wrap */
-    overflow: visible; /* Allow content to expand beyond box */
-    display: block;
-    padding: 5px; /* Increased padding for more space */
-  }
-  .tooltip {
-    position: absolute;
-    z-index: 1;
-    display: none;
-    padding: 15px; /* Increased padding for more space */
-    background-color: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    font-size: 0.8em;
-    border-radius: 5px;
-    pointer-events: none;
-    bottom: calc(100% + 10px); /* Position above the day with a small gap */
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: normal; /* Allow wrapping within tooltip */
-    max-width: 300px; /* Increased max width for larger tooltip */
-    min-width: 200px; /* Minimum width to ensure tooltip is visible */
-    max-height: 200px; /* Maximum height to prevent excessive growth */
-    overflow-y: auto; /* Add vertical scrollbar if content exceeds max height */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add box shadow for depth */
-  }
-  .day.active .tooltip {
-    display: block;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar with Events</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 20px;
+    }
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, calc(14.28% - 5px));
+      gap: 5px;
+    }
+    .day {
+      position: relative;
+      padding: 15px;
+      border: 1px solid #ccc;
+      text-align: center;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .header {
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .controls {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .special-day {
+      background-color: yellow;
+    }
+    .label {
+      margin-top: 5px;
+      font-size: 0.8em;
+      color: red;
+      white-space: normal;
+      overflow: visible;
+      display: block;
+      padding: 5px;
+    }
+    .tooltip {
+      position: absolute;
+      z-index: 1;
+      display: none;
+      padding: 15px;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      font-size: 0.8em;
+      border-radius: 5px;
+      pointer-events: none;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: normal;
+      max-width: 300px;
+      min-width: 200px;
+      max-height: 200px;
+      overflow-y: auto;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .day.active .tooltip {
+      display: block;
+    }
+    /* Style for arrows */
+    .arrow {
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-  <h1>Calendar with Events</h1>
+  <h1 style="text-align: center;">Calendar with Events</h1>
   
   <div class="controls">
-    <button onclick="prevMonth()">Previous Month</button>
+    <span class="arrow" onclick="prevMonth()">&#9664;</span>
     <span id="monthYear"></span>
-    <button onclick="nextMonth()">Next Month</button>
+    <span class="arrow" onclick="nextMonth()">&#9654;</span>
   </div>
   
   <div class="calendar" id="calendar">
@@ -84,7 +89,7 @@
   </div>
 
   <script>
-    var currentDate = new Date(); // Current date by default
+    var currentDate = new Date();
     var currentMonth = currentDate.getMonth();
     var currentYear = currentDate.getFullYear();
     var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
