@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar with Events</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 20px;
+  }
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(7, calc(14.28% - 5px));
+    gap: 5px;
+  }
+  .day {
+    position: relative;
+    padding: 15px;
+    border: 1px solid #ccc;
+    text-align: center;
+    overflow: hidden;
+    cursor: pointer; /* Add cursor pointer for better UX */
+    transition: all 0.3s ease;
+  }
+  .header {
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .controls {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .special-day {
+    background-color: yellow;
+  }
+  .label {
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: red;
+    white-space: normal; /* Allow text to wrap */
+    overflow: visible; /* Allow content to expand beyond box */
+    display: block;
+    padding: 5px; /* Increased padding for more space */
+  }
+  .tooltip {
+    position: absolute;
+    z-index: 1;
+    display: none;
+    padding: 15px; /* Increased padding for more space */
+    background-color: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    font-size: 0.8em;
+    border-radius: 5px;
+    pointer-events: none;
+    bottom: calc(100% + 10px); /* Position above the day with a small gap */
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: normal; /* Allow wrapping within tooltip */
+    max-width: 300px; /* Increased max width for larger tooltip */
+    min-width: 200px; /* Minimum width to ensure tooltip is visible */
+    max-height: 200px; /* Maximum height to prevent excessive growth */
+    overflow-y: auto; /* Add vertical scrollbar if content exceeds max height */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: Add box shadow for depth */
+  }
+  .day.active .tooltip {
+    display: block;
+  }
+</style>
+</head>
+<body>
+  <h1>Calendar with Events</h1>
+  
+  <div class="controls">
+    <button onclick="prevMonth()">Previous Month</button>
+    <span id="monthYear"></span>
+    <button onclick="nextMonth()">Next Month</button>
+  </div>
+  
+  <div class="calendar" id="calendar">
+    <!-- Days will be generated dynamically -->
+  </div>
+
+  <script>
+    var currentDate = new Date(); // Current date by default
+    var currentMonth = currentDate.getMonth();
+    var currentYear = currentDate.getFullYear();
+    var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    // Manually added events
+    const events = {
+      "06-21-2024": "IBB",
+      "06-22-2024": "IBB",
+    };
+
+    // URL to your Google Sheets document
+    const googleSheetsUrl = 'https://docs.google.com/spreadsheets/d/1WpoIF2B9fBGtfN71fcsvAkBC8Pt6G3u8gK9roFLVzYg/gviz/tq?tqx=out:json';
+
+    // Fetch data from Google Sheets
+    fetch(googleSheetsUrl)
+      .then(response => response.text())
+      .then(data => {
+        // Extract the JSON data from the Google Sheets API response
+        const jsonMatch = data.match(/google\.visualization\.Query\.setResponse\((.*?)\);/);
+        if (jsonMatch) {
+          const jsonData = JSON.parse(jsonMatch[1]);
+
+          // Iterate over the rows in the Google Sheets data
+          const rows = jsonData.table.rows;
+          rows.forEach(row => {
+            // Convert the date to MM-DD-YYYY format
+            const rawDate = row.c[0].v.match(/Date\((\d+),(\d+),(\d+)\)/);
+            const year = rawDate[1];
+            const month = ('0' + (parseInt(rawDate[2]) + 1)).slice(-2);
+            const day = ('0' + rawDate[3]).slice(-2);
+            const formattedDate = `${month}-${day}-${year}`;
+
+            const event = row.c[1].v;
+            events[formattedDate] = event;
+          });
+
+          // Generate calendar after fetching data
+          generateCalendar(currentMonth, currentYear, events);
+        }
+      });
+
+    function generateCalendar(month, year, events) {
+      var daysInMonth = new Date(year, month + 1, 0).getDate(); // Get number of days in month
+      var firstDay = new Date(year, month, 1).getDay(); // Get first day of the month (0-6)
+      var calendarDiv = document.getElementById('calendar');
+      calendarDiv.innerHTML = ''; // Clear previous calendar
+
+      // Create header for month and year
+      document.getElementById('monthYear').textContent = monthNames[month] + ' ' + year;
+
+      // Create day headers (Sun, Mon, ..., Sat)
+      var dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      for (var i = 0; i < 7; i++) {
+        var headerDiv = document.createElement('div');
+        headerDiv.classList.add('day');
+        headerDiv.textContent = dayHeaders[i];
+        calendarDiv.appendChild(headerDiv);
+      }
+
+      // Create empty placeholders for days before the first day of the month
+      for (var i = 0; i < firstDay; i++) {
+        var emptyDiv = document.createElement('div');
+        emptyDiv.classList.add('day');
+        calendarDiv.appendChild(emptyDiv);
+      }
+
+      // Create days of the month
+      for (var i = 1; i <= daysInMonth; i++) {
+        var dayDiv = document.createElement('div');
+        dayDiv.classList.add('day');
+        
+        // Check if current day has an event
+        var dateString = ('0' + (month + 1)).slice(-2) + '-' + ('0' + i).slice(-2) + '-' + year;
+        if (events[dateString]) {
+          dayDiv.classList.add('special-day');
+          dayDiv.innerHTML = `<div>${i}</div><div class="label">${events[dateString]}</div>`;
+          
+          // Create tooltip for full event details
+          var tooltip = document.createElement('div');
+          tooltip.classList.add('tooltip');
+          tooltip.textContent = events[dateString];
+          dayDiv.appendChild(tooltip);
+
+          // Toggle tooltip visibility on click
+          dayDiv.addEventListener('click', function() {
+            dayDiv.classList.toggle('active');
+          });
+        } else {
+          dayDiv.textContent = i;
+        }
+
+        calendarDiv.appendChild(dayDiv);
+      }
+    }
+
+    function prevMonth() {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      generateCalendar(currentMonth, currentYear, events);
+    }
+
+    function nextMonth() {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      generateCalendar(currentMonth, currentYear, events);
+    }
+  </script>
+</body>
+</html>
